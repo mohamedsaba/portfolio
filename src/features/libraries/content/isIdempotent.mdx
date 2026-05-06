@@ -1,0 +1,29 @@
+export const metadata = {
+  title: "isIdempotent",
+  description: "Ensuring distributed consistency in NestJS microservices through a robust, Redis-backed idempotency layer.",
+  date: "2026-04-23",
+  tags: ["Distributed Systems", "NestJS", "Redis"],
+  slug: "isIdempotent",
+  category: "library",
+  npmName: "isIdempotent",
+  githubRepo: "mohamedsaba/isIdempotent",
+  articleSlug: "idempotency-patterns"
+}
+
+# Solving Distributed Consistency
+
+In a world of microservices, network failures are inevitable. Idempotency ensures that retrying a request doesn't lead to duplicate side effects (like double-charging a customer).
+
+## The Approach
+
+We use a "Request-ID" based approach stored in Redis with a short TTL. Before processing any request, we check if the ID has already been handled.
+
+```typescript
+@Idempotent({
+  ttl: 3600, // 1 hour
+  keyPrefix: 'payment-capture'
+})
+async capturePayment(id: string) {
+  // Safe to retry!
+}
+```

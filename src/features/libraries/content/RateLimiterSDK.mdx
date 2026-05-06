@@ -1,0 +1,31 @@
+export const metadata = {
+  title: "RateLimiterSDK",
+  description: "A high-performance distributed rate limiting engine powered by atomic Redis Lua scripts.",
+  date: "2026-04-21",
+  tags: ["Redis", "Distributed Systems", "TypeScript", "Concurrency"],
+  slug: "RateLimiterSDK",
+  category: "library",
+  githubRepo: "mohamedsaba/RateLimiterSDK",
+  articleSlug: "rate-limiting-lua"
+}
+
+# The Front Line of Defense
+
+Building scalable APIs requires protecting your resources from abuse while ensuring fair usage across tenants. RateLimiterSDK provides a robust, distributed approach to request throttling that is mathematically immune to race conditions.
+
+## Technical Architecture
+
+- **Sliding Window Log**: Unlike fixed-window counters, we use Redis Sorted Sets (`ZSET`) to track request timestamps, ensuring perfect accuracy across window boundaries.
+- **Atomic Lua Guards**: The entire "check-then-set" logic is encapsulated in a single Lua script, ensuring zero-latency overhead and thread-safe execution within Redis.
+- **Tenant Isolation**: Native support for per-API-key throttling, preventing noisy neighbors from impacting global system capacity.
+
+```typescript
+const limiter = new RateLimiter({
+  redis: redisClient,
+  limit: 100,
+  window: '60s'
+});
+
+// Atomic check and increment
+const isAllowed = await limiter.consume(ipAddress);
+```

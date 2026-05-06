@@ -1,0 +1,60 @@
+export const metadata = {
+  title: "Architecting Enterprise Auth in NestJS",
+  description: "A deep dive into building a standardized, scalable authentication and authorization framework using NestJS and modern security patterns.",
+  date: "2026-04-24",
+  tags: ["NestJS", "Security", "Architecture", "Auth"],
+  slug: "nestjs-auth-architecture",
+  category: "blog",
+  readingTime: "6 min read"
+}
+
+# The Fragmentation of Security
+
+In many NestJS codebases, authentication and authorization are often implemented as an ad-hoc collection of guards and decorators scattered across the application. This fragmentation leads to security vulnerabilities, inconsistent policy enforcement, and a nightmare for auditing.
+
+With `@mohamedsaba/Nestjs-AuthKit`, I set out to build a unified framework that standardizes these patterns into a single, highly composable engine.
+
+## The Identity Engine
+
+The core of the system is the **Identity Provider**, which decouples the authentication strategy from the business logic. Whether you are using JWT, OAuth2, or Session-based auth, the application only interacts with a standardized `Identity` object.
+
+### Multi-Strategy Convergence
+
+We support multiple strategies running in parallel, which is critical for systems that handle both public API consumers (via API Keys) and internal dashboards (via OIDC/JWT).
+
+```typescript
+@UseGuards(AuthGuard(['jwt', 'api-key']))
+@Controller('orders')
+export class OrdersController {
+  // Logic remains identical regardless of how the user authenticated
+}
+```
+
+## Beyond Roles: Policy-Based Authorization
+
+Simple Role-Based Access Control (RBAC) often breaks down in complex domains. If a "Manager" can edit a "Project," but only if they are the designated "Project Lead," raw roles aren't enough.
+
+We implemented a **Policy-Based Authorization** system inspired by AWS IAM and XACML. Policies are evaluation units that combine roles, permissions, and runtime attributes (ABAC).
+
+### The Evaluation Logic
+
+```typescript
+@Permissions({
+  action: 'update',
+  resource: 'Project',
+  condition: (user, project) => project.ownerId === user.id
+})
+async updateProject(id: string) {
+  // The guard handles the heavy lifting of context evaluation
+}
+```
+
+## Developer Ergonomics: The Decorator Pattern
+
+A major goal was to reduce the "Security Tax"—the amount of boilerplate developers must write to keep a feature secure. By utilizing custom metadata and reflection, we reduced auth-related code in controllers by nearly 60%.
+
+The library provides a declarative API that makes security intent clear at a glance, acting as its own documentation.
+
+## Conclusion: Security as a First-Class Citizen
+
+Auth shouldn't be a middleware you "attach" to your app; it should be the foundation your app is built upon. By standardizing these patterns, we move from "hope-based security" to "architecture-based security."

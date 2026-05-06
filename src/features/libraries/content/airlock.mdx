@@ -1,0 +1,52 @@
+export const metadata = {
+  title: "Airlock",
+  description: "A high-reliability Transactional Outbox implementation for NestJS microservices.",
+  date: "2026-04-30",
+  tags: ["Microservices", "Reliability", "NestJS", "PostgreSQL"],
+  slug: "airlock",
+  category: "library",
+  npmName: "@mohamedsaba/airlock",
+  githubRepo: "mohamedsaba/airlock",
+  articleSlug: "dual-write-problem"
+};
+
+
+# The Reliability Frontier
+
+Airlock solves the "Dual-Write Problem" by ensuring that database updates and message broker emissions happen atomically.
+
+## Transactional Outbox Pattern
+
+When you save an entity, Airlock automatically captures the associated domain events within the same database transaction, ensuring absolute consistency.
+
+```typescript
+@Injectable()
+export class OrderService {
+  constructor(private readonly airlock: AirlockService) {}
+
+  async createOrder(dto: CreateOrderDto) {
+    return this.airlock.runInTransaction(async (manager) => {
+      const order = await manager.save(Order, dto);
+      
+      // Captured atomically in the 'outbox' table
+      await this.airlock.emit('OrderCreated', order);
+      
+      return order;
+    });
+  }
+}
+```
+
+## Architecture Decision Records (ADR)
+
+### ADR-001: Unit of Work Pattern
+We utilize a Unit of Work pattern to intercept repository calls within a transaction, automatically piping events into the outbox table without requiring manual event-table management from the developer.
+
+### ADR-002: At-Least-Once Delivery
+The relay worker ensures at-least-once delivery to the message broker. We favor duplicate events (handled by our idempotency layer) over lost events.
+
+## Live Playground
+
+Explore the transactional integrity of Airlock in this live simulation.
+
+<StackBlitz repo="mohamedsaba/airlock-demo" />

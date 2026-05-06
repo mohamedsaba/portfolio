@@ -1,0 +1,40 @@
+export const metadata = {
+  title: "Nestjs-AuthKit",
+  description: "A production-grade authentication and authorization framework for NestJS, standardizing enterprise security patterns.",
+  date: "2026-04-24",
+  tags: ["Security", "NestJS", "Auth"],
+  slug: "Nestjs-AuthKit",
+  category: "library",
+  npmName: "Nestjs-AuthKit",
+  githubRepo: "mohamedsaba/Nestjs-AuthKit",
+  articleSlug: "nestjs-auth-architecture"
+};
+
+
+# Standardizing Security
+
+Security should not be an afterthought. This library provides a set of decorators, guards, and interceptors to handle the most common enterprise auth requirements.
+
+## Key Features
+
+- **Multi-Strategy Support**: Seamlessly switch between JWT, Session, and API Key authentication.
+- **RBAC & ABAC**: Fine-grained access control using declarative decorators.
+- **Audit Logging**: Automatic tracking of authentication events.
+
+```typescript
+@UseGuards(JwtAuthGuard)
+@Permissions('user:read')
+@Controller('users')
+export class UsersController {
+  // ...
+}
+```
+
+## Architecture Decision Records (ADR)
+
+### ADR-001: Policy-Based Authorization
+We moved away from simple Role-Based Access Control (RBAC) in favor of a flexible Policy-Based system, allowing for Attribute-Based (ABAC) rules that can evaluate runtime context (e.g., resource ownership).
+
+### ADR-002: Decorator-First Interface
+To maintain high developer ergonomics, we prioritize a declarative API using TypeScript decorators, reducing boilerplate in controllers by over 60%.
+

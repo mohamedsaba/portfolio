@@ -1,0 +1,31 @@
+export const metadata = {
+  title: "BullMQ Metrics",
+  description: "Zero-config observability for BullMQ, exporting real-time queue metrics to Prometheus and Grafana.",
+  date: "2026-04-23",
+  tags: ["Observability", "BullMQ", "Monitoring"],
+  slug: "bullmq-metrics",
+  category: "library",
+  npmName: "@mohamedsaba/bullmq-metrics",
+  githubRepo: "mohamedsaba/bullmq-metrics",
+  articleSlug: "bullmq-observability"
+}
+
+# Visible Queues
+
+What you can't measure, you can't manage. BullMQ Metrics makes it trivial to track queue health, job latency, and failure rates.
+
+## Prometheus Integration
+
+The library automatically sets up a Prometheus exporter that tracks:
+- `bullmq_jobs_waiting`
+- `bullmq_jobs_active`
+- `bullmq_job_duration_seconds`
+
+```javascript
+import { createMetricsCollector } from '@mohamedsaba/bullmq-metrics';
+
+createMetricsCollector(myQueue, {
+  port: 9091,
+  endpoint: '/metrics'
+});
+```

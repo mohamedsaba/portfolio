@@ -1,0 +1,87 @@
+export const metadata = {
+  title: "Idempotency in Distributed Systems: A Practical NestJS Implementation",
+  description: "How I solved the double-charging problem in a distributed architecture using the IETF Idempotency-Key draft and custom NestJS interceptors.",
+  date: "2026-05-04",
+  tags: ["NestJS", "Idempotency", "Architecture", "Distributed Systems"],
+  slug: "idempotency-patterns",
+  category: "blog"
+}
+
+# The Nightmare of Duplicate Charges
+
+There is a specific kind of dread that settles in your stomach when a customer support agent messages you: *"Why was this user charged three times for the same subscription?"*
+
+I was the lead backend engineer on a fintech application. Our payment service was communicating with a legacy upstream banking provider. The upstream provider was notoriously slow and prone to timeouts. 
+
+Here was the scenario:
+1. The user clicked "Pay".
+2. Our server sent the request to the upstream bank.
+3. The bank processed the payment successfully.
+4. The bank's response to us timed out over the network.
+5. Our server, assuming failure, returned a `504 Gateway Timeout` to the frontend.
+6. The user, seeing an error, clicked "Pay" again.
+
+The result? The user was charged twice, and our database only recorded one successful transaction. We had a distributed data inconsistency, and resolving it required painful manual reconciliation.
+
+## The Idempotency Imperative
+
+In an ideal world, networks are reliable. In reality, they are hostile environments. When a client times out while calling your API, they exist in a state of quantum uncertainty: they don't know if the request failed to reach your server, or if it succeeded and only the response was lost.
+
+The only safe way to retry a mutating operation (like a `POST` or `PATCH`) is if the operation is **idempotent**. An idempotent operation can be performed multiple times, but the side effects only happen once.
+
+## Implementing the IETF Draft
+
+Instead of reinventing the wheel, I looked to the IETF `Idempotency-Key` HTTP Header draft. The concept is elegant: the client generates a unique UUID (the idempotency key) and attaches it to the request header. 
+
+If the server sees this key for the first time, it processes the request and caches the response. If the server sees the key again, it bypasses the business logic and simply returns the cached response.
+
+I needed to build this into our NestJS architecture. I created what would eventually become `@mohamedsaba/idempotent`.
+
+### The Race Condition 
+
+The naive implementation looks like this:
+```typescript
+// NAIVE IMPLEMENTATION - DO NOT USE
+const cached = await redis.get(idempotencyKey);
+if (cached) return cached;
+
+const result = await processPayment();
+await redis.set(idempotencyKey, result);
+return result;
+```
+
+This is fundamentally flawed. If the user double-clicks the "Pay" button quickly, two identical requests hit the server simultaneously. Both check the cache, both see `null`, and both proceed to process the payment. 
+
+To solve this, I had to implement a strict locking mechanism.
+
+### The Locking Protocol
+
+When a request arrives, the library executes a multi-step protocol using Redis to guarantee safety:
+
+1. **The Lock (SET NX)**: We attempt to set the idempotency key in Redis with the `NX` (Not eXists) flag. If this succeeds, we own the lock. We are the first request.
+2. **The Conflict Check**: If `SET NX` fails, it means another request with this key is either currently processing or has already finished. 
+3. **In-Flight Handling**: If the other request is still processing, we return a `409 Conflict` (or optionally hold the connection and poll). 
+4. **Execution & Caching**: We execute the business logic, serialize the response (including HTTP status and headers), and atomically update the Redis key with the final payload and a 24-hour TTL.
+
+## The NestJS Interceptor Abstraction
+
+The beauty of NestJS is its use of decorators and interceptors. I didn't want developers to litter their payment controllers with Redis locking logic.
+
+By wrapping this protocol in an Interceptor, the implementation became entirely declarative:
+
+```typescript
+@Post('charge')
+@UseInterceptors(IdempotencyInterceptor)
+@Idempotent({ ttl: 86400 }) // Cache for 24 hours
+async createPayment(@Body() dto: CreatePaymentDto) {
+  // Pure business logic. 
+  // If we reach here, we are guaranteed to be the single execution.
+  return this.paymentService.process(dto);
+}
+```
+
+## The Architect's Takeaway
+
+Building resilient systems isn't about preventing failures; it's about anticipating them. Timeouts will happen. Clients will retry. Users will double-click buttons. 
+
+By enforcing idempotency at the API gateway layer, we isolated our core business logic from the chaos of the network. We never double-charged a user again.

@@ -1,0 +1,50 @@
+export const metadata = {
+  title: "Engineering a Distributed Rate Limiter SDK",
+  description: "Analyzing the mechanics of distributed rate limiting, tenant isolation, and high-performance Redis integration.",
+  date: "2026-04-21",
+  tags: ["TypeScript", "Redis", "Distributed Systems", "Performance"],
+  slug: "distributed-rate-limiting-sdk",
+  category: "blog",
+  readingTime: "5 min read"
+}
+
+# The Challenge of Scale
+
+When building APIs that serve thousands of concurrent users, raw performance is only half the battle. Resource preservation is the other. Without a robust rate limiting strategy, a single rogue client or a burst in traffic can exhaust your database connections or memory, leading to a total system failure.
+
+`@mohamedsaba/RateLimiterSDK` was designed to provide a high-performance, distributed solution to this problem, specifically tailored for TypeScript environments.
+
+## Architecture: Distributed but Atomic
+
+Local rate limiting is easy but insufficient for distributed systems. If you have 10 instances of your API, each instance has its own local memory. A client could potentially hit your system 10x more than their limit by rotating between instances.
+
+We solved this by utilizing **Redis as a centralized state store**. To ensure high performance, we use atomic Lua scripts. This allows us to perform the "check-and-increment" logic in a single round-trip to Redis, eliminating race conditions without the overhead of complex locks.
+
+### The Token Bucket Pattern
+
+The SDK implements the Token Bucket algorithm. This allows for brief bursts of traffic while enforcing a strict average rate over time, providing a more "human" experience than rigid window-based limiting.
+
+```typescript
+const limiter = new RateLimiter({
+  redis: redisClient,
+  keyPrefix: 'api:v1:orders',
+  capacity: 100, // Max tokens
+  fillRate: 10   // Tokens added per second
+});
+
+if (await limiter.consume(clientId)) {
+  // Proceed with request
+} else {
+  // Return 429 Too Many Requests
+}
+```
+
+## Multi-Tenant Isolation
+
+In a multi-tenant SaaS environment, tenant isolation is critical. You cannot allow one client's high traffic to "starve" another client's available capacity.
+
+The SDK treats the `clientId` (or tenant ID) as the primary isolation axis. Every tenant effectively gets their own isolated token bucket in Redis, ensuring that performance is consistent across your entire user base.
+
+## Conclusion
+
+A rate limiter is the "front line" of your infrastructure's defense. By combining the atomicity of Redis Lua scripts with the developer ergonomics of TypeScript, we've built a tool that is both incredibly fast and effortless to integrate.

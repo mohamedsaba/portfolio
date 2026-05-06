@@ -1,0 +1,120 @@
+export const metadata = {
+  title: "Taming the Dual-Write Problem in Microservices",
+  description: "How I architected around the treacherous dual-write problem using the Outbox Pattern and Change Data Capture (CDC).",
+  date: "2026-05-02",
+  tags: ["Architecture", "Microservices", "PostgreSQL", "Kafka"],
+  slug: "dual-write-problem",
+  category: "blog",
+  library: "airlock"
+}
+
+# The Illusion of the Distributed Transaction
+
+Early in my career, I was tasked with building an onboarding flow for a SaaS platform. The requirements seemed simple: when a user registers, save their profile in the PostgreSQL database, and publish a `UserCreated` event to Kafka so the email service can send a welcome email.
+
+I wrote the code exactly as requested:
+
+```typescript
+async registerUser(dto: RegisterDto) {
+  // 1. Save to database
+  const user = await this.userRepo.save(dto);
+  
+  // 2. Publish to message broker
+  await this.kafkaClient.emit('UserCreated', user);
+  
+  return user;
+}
+```
+
+It worked flawlessly in development. It worked in staging. It passed all unit tests.
+
+Two months into production, we audited our systems. We discovered 42 users in our database who had never received a welcome email, and 12 welcome emails sent to users who didn't exist in our database.
+
+I had stumbled into the **Dual-Write Problem**.
+
+## The Anatomy of the Failure
+
+The code above attempts to write to two independent distributed systems (Postgres and Kafka) without a distributed transaction protocol. This is mathematically impossible to do safely.
+
+Consider what happens when things fail:
+
+**Scenario A: The Broker Dies**
+1. The user is saved to Postgres.
+2. The network connection to Kafka drops, and the `emit` throws an error.
+3. We rollback the HTTP request, showing the user an error. 
+*Result:* The user exists in the DB, but no event was fired. The state is inconsistent.
+
+**Scenario B: Swapping the Order**
+"I'll just publish the event first!" I thought.
+1. We emit `UserCreated` to Kafka.
+2. The database throws a unique constraint error.
+*Result:* The email service sends a welcome email, but the user doesn't exist in our database. Inconsistent.
+
+## Enter the Outbox Pattern
+
+To solve this, we need to achieve atomic writes across both systems. Since Postgres and Kafka don't share a transaction manager, we use Postgres as our single source of truth and defer the Kafka publish.
+
+This is the **Transactional Outbox Pattern**.
+
+To simplify this for other teams, I abstracted this logic into **Airlock**, a production-grade transactional outbox library for NestJS.
+
+I redesigned the onboarding flow using this pattern. Instead of writing to Postgres and Kafka, we only write to Postgres. But we write to *two tables* within a single database transaction: the `users` table, and an `outbox_events` table.
+
+```typescript
+async registerUser(dto: RegisterDto) {
+  return this.dataSource.transaction(async manager => {
+    // 1. Save the user
+    const user = await manager.save(User, dto);
+    
+    // 2. Save the event in the SAME transaction
+    await manager.save(OutboxEvent, {
+      aggregateType: 'User',
+      aggregateId: user.id,
+      eventType: 'UserCreated',
+      payload: user
+    });
+    
+    return user;
+  });
+}
+```
+
+Because both inserts happen in the same ACID transaction, they are guaranteed to either both succeed or both fail. 
+
+## The Relay Worker
+
+Now we have events safely stored in the database, but they need to get to Kafka. 
+
+I implemented a background relay worker. Every few seconds, this worker queries the `outbox_events` table for unpublished events, publishes them to Kafka, and marks them as published.
+
+```typescript
+async relayEvents() {
+  const events = await this.outboxRepo.find({ where: { published: false } });
+  
+  for (const event of events) {
+    try {
+      await this.kafkaClient.emit(event.eventType, event.payload);
+      // Mark as published only AFTER successful emission
+      await this.outboxRepo.update(event.id, { published: true });
+    } catch (error) {
+      // If Kafka is down, we just stop. 
+      // The event is safe in the DB and will be retried later.
+      break; 
+    }
+  }
+}
+```
+
+## Scaling Up: Change Data Capture (CDC)
+
+The polling worker was fine for thousands of users, but as we scaled to millions of events, polling the database became a bottleneck. 
+
+To upgrade the architecture, we ripped out the polling worker and implemented **Debezium**. Debezium is a Change Data Capture (CDC) tool that reads directly from the PostgreSQL Write-Ahead Log (WAL). 
+
+When a transaction commits to the `outbox_events` table, Debezium instantly streams that row directly into Kafka with zero application-level polling and minimal database load.
+
+## The Architect's Takeaway
+
+Microservices are easy to draw on a whiteboard, but the lines between the boxes are where the danger lies. 
+
+The dual-write problem taught me a fundamental lesson in distributed systems: **Never trust the network.** By embracing the Outbox Pattern, we transformed a fragile, temporally-coupled process into a robust, eventually-consistent architecture. We traded the illusion of immediate synchronicity for the guarantee of absolute consistency.

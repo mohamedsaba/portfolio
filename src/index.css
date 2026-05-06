@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #131608;
+    --text: #EDE3CE;
+    --accent: #96A84E;
+    --warm: #C8A96A;
+    --code-bg: #1C2110;
+    --border: #2E3518;
+    --highlight: #2A3015;
+  }
+
+  body {
+    @apply bg-paper-bg text-paper-text antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    @apply bg-paper-accent/20 text-paper-text;
+  }
+
+  h1 {
+    @apply text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif leading-[1.1] sm:leading-tight tracking-tightest;
+  }
+
+  h2 {
+    @apply text-3xl sm:text-5xl md:text-6xl font-serif leading-tight tracking-tighter;
+  }
+
+  h3 {
+    @apply text-2xl sm:text-3xl md:text-4xl font-serif leading-tight tracking-tight;
+  }
+
+  p {
+    @apply text-base sm:text-lg leading-relaxed text-paper-muted;
+  }
+
+  /* Code Blocks - Terminal Style */
+  pre {
+    @apply bg-[#0C0F05] text-[#D4D4D4] pt-12 pb-6 px-6 rounded-none overflow-x-auto my-8 border-l-4 border-l-paper-accent relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  /* Terminal Header */
+  pre::before {
+    content: '~/engineering-log';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 8px 16px;
+    background: #141808;
+    color: #8A7C65;
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid #2E3518;
+  }
+
+  pre code {
+    @apply bg-transparent p-0 text-[13px] leading-[1.7] font-mono border-0 font-normal;
+    color: #DDD0BC;
+  }
+
+  /* Inline Code */
+  :not(pre) > code {
+    @apply bg-paper-accent/10 text-paper-accent px-1.5 py-0.5 font-mono text-[0.85em] font-semibold;
+  }
+}
+
+@keyframes mobile-nav-enter {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mobile-nav-animate {
+  animation: mobile-nav-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
+@layer components {
+  /* Subtle grain texture overlay */
+  .grain-overlay::before {
+    content: '';
+    @apply fixed inset-0 pointer-events-none z-[100];
+    opacity: 0.05; 
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* Dark Olive Card */
+  .paper-card {
+    @apply bg-paper-code border border-paper-border rounded-none;
+    @apply transition-all duration-300 ease-in-out;
+    box-shadow: 4px 4px 0 theme('colors.paper.border');
+  }
+
+  .paper-card:hover {
+    @apply border-paper-accent;
+    box-shadow: 8px 8px 0 theme('colors.paper.accent');
+    transform: translate(-4px, -4px);
+  }
+
+  /* Section Divider */
+  .section-divider {
+    @apply w-full h-px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      theme('colors.paper.border') 20%,
+      theme('colors.paper.border') 80%,
+      transparent 100%
+    );
+  }
+
+  /* Olive underline decoration */
+  .warm-underline {
+    @apply decoration-[#96A84E]/40 decoration-[3px] underline underline-offset-4;
+    text-decoration-skip-ink: none;
+  }
+
+  /* Accent gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #96A84E 0%, #7A8A40 50%, #C8A96A 100%);
+  }
+
+  /* High-authority highlight */
+  .paper-highlight {
+    background: linear-gradient(104deg, rgba(150, 168, 78, 0.2) 0.9%, rgba(150, 168, 78, 0.05) 2.4%, rgba(150, 168, 78, 0.3) 5.8%, rgba(150, 168, 78, 0.1) 93%, rgba(150, 168, 78, 0.35) 96%);
+    padding: 0.1em 0.3em;
+    margin: 0 -0.3em;
+    border-radius: 0.2em;
+  }
+}
+
+/* Custom Scrollbar — olive theme */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-paper-bg border-l border-paper-border;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-paper-border rounded-none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-paper-accent;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}

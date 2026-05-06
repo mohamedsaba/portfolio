@@ -1,0 +1,62 @@
+export const metadata = {
+  title: "TRUSIGHT: AI-Powered Verification",
+  description: "A professional-grade tactical analytics engine for League of Legends, featuring a sub-500ms caching pipeline and AI-driven coaching.",
+  date: "2026-04-21",
+  tags: ["Next.js", "NestJS", "AI", "PostgreSQL", "Redis", "BullMQ"],
+  slug: "trusight-architecture",
+  category: "blog",
+  githubRepo: "mohamedsaba/TRUSIGHT",
+  readingTime: "8 min read"
+};
+
+
+<Video src="/assets/videos/trusight-demo.mp4" caption="TRUSIGHT: Tactical Terminal & AI Coaching Demo" />
+
+## Piercing the Fog of War
+
+League of Legends is an incredibly complex, data-rich ecosystem. A single thirty-minute match generates millions of permutations involving ten unique players, complex macro-rotations, and micro-mechanical execution. Yet, the tools currently available to the community fail to capture this complexity. They act as simple API wrappers, presenting players with dead "vanity metrics" like raw KDA, overall win rates, and surface-level creep score.
+
+TRUSIGHT was engineered to solve this exact problem. I set out to build an engine that does not just fetch data, but actively analyzes the DNA of a player's performance. The goal was to provide true tactical clarity, bypassing the noise of standard analytics to deliver professional-grade, actionable intelligence.
+
+## System Architecture
+
+This project was built to handle intense data ingestion, complex mathematical clustering, and real-time client streaming. The entire architecture is structured as a strictly typed monorepo, managed via `pnpm` and Nx workspaces.
+
+### The Sub-500ms Caching Pipeline
+
+The most significant bottleneck in gaming analytics is the initial data ingestion phase. Fetching a fresh player profile requires pulling massive amounts of historical telemetry from the Riot Games API.
+
+To prevent the backend from bottlenecking, TRUSIGHT employs an aggressive, multi-tiered pipeline:
+
+- **Custom Rate Limiting:** The Riot API enforces strict, multi-layered token buckets. I engineered a bespoke Rate Limiter that intelligently queues outgoing requests and automatically pauses execution upon detecting `Retry-After` headers, ensuring absolute compliance.
+- **Real-Time Telemetry Streaming:** While the backend processes the initial 7-second data fetch, incoming requests are offloaded to BullMQ background workers. As each match is processed, progress events are streamed live directly to the Next.js client via Socket.io.
+- **Aggressive Redis Caching:** Once the heavy calculations conclude, the fully processed JSON payload is stored in a global Redis caching layer above PostgreSQL. Subsequent requests drop from 7 seconds to under 500ms.
+
+### The Verdict Engine and TRU R Rating
+
+Matchmaking ranks are highly volatile. To counter this, TRUSIGHT utilizes a custom MMR engine to calculate a player's True Rating (TRU R).
+
+The engine runs a K-Nearest Neighbors (KNN) algorithm, clustering a user's multi-dimensional performance metrics against global baselines. It looks past KDA, grading players on Resource Collection, Combat Effectiveness, and Map Control to assign a personalized grade (S+ to D).
+
+### AI Integration Layer: The Personal Coach
+
+TRUSIGHT features a built-in Artificial Intelligence integration layer utilizing Gemini Pro. The architecture pipes raw metrics and KNN verdicts directly into the LLM. 
+
+Instead of generating generic templates, the model performs deep pattern recognition on the player's match timelines, synthesizing the data to provide hyper-specific coaching. It is a live, automated personal coach.
+
+### Zero-Dependency Frontend Architecture
+
+I enforced a strict architectural mandate: zero third-party UI libraries. 
+
+The entire frontend is a bespoke Next.js 16 application built strictly with Tailwind CSS v4 and Framer Motion. I stripped away unnecessary 3D visual clutter in favor of a clean, lightning-fast "2D Tactical Terminal" theme. The UI relies on crisp geometry, glassmorphic depth, and highly optimized staggered entrance animations, maintaining a flawless 60 FPS.
+
+### Backend: Feature-Sliced Design (FSD)
+
+The NestJS backend strictly adheres to Feature-Sliced Design (FSD) principles. Business domains such as Player, Match, Telemetry, and MMR are entirely decoupled. This guarantees that modifications to the API ingestion logic will never bleed into the mathematical clustering engine.
+
+## Core Technology Stack
+
+- **Frontend:** Next.js 16, React, Tailwind CSS v4, Framer Motion
+- **Backend:** NestJS, TypeScript, Feature-Sliced Design (FSD)
+- **Data Science & AI:** KNN Algorithm, Gemini Pro API
+- **Infrastructure:** PostgreSQL, Redis, BullMQ, Socket.io, Docker

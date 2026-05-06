@@ -1,0 +1,82 @@
+export const metadata = {
+  title: "Zero-Config BullMQ Observability with Prometheus",
+  description: "A deep dive into why I built a zero-config Prometheus exporter for BullMQ, solving the blind-spot problem in asynchronous job processing.",
+  date: "2026-05-05",
+  tags: ["BullMQ", "Observability", "Prometheus", "Node.js"],
+  slug: "bullmq-observability",
+  category: "blog"
+}
+
+# The Blind Spot in Background Processing
+
+I remember the precise moment I realized our background processing was a black box. We had just deployed a major feature that relied heavily on BullMQ for asynchronous video encoding. The deployment went smoothly, error rates were at a flat zero, and the CPU graphs looked healthy. 
+
+Then, customer support tickets started rolling in: *"My video has been processing for two hours."*
+
+I SSH'd into the worker nodes. CPU was fine. Memory was fine. I opened Redis CLI and checked the queue length. We had over 15,000 jobs sitting in the `waiting` state. The workers were technically "healthy"—they just weren't processing anything because of a silent connection pool exhaustion issue that didn't throw an exception. 
+
+BullMQ is incredible. It's the industry standard for message queuing in the Node.js ecosystem. But running it in production without granular observability is like flying a commercial jet at night with the instrument panel turned off.
+
+## The Friction of Manual Instrumentation
+
+The immediate reaction after an incident like that is to "add more metrics." But manual instrumentation is a nightmare. 
+
+If you want to track job latencies, queue depths, and failure rates, you usually have to pollute your business logic. You start wrapping every job processor in `try/catch` blocks, injecting Prometheus client libraries, and manually calculating `Date.now() - job.timestamp`. 
+
+```javascript
+// The nightmare of manual instrumentation
+processor: async (job) => {
+  const startTime = Date.now();
+  try {
+    const result = await doWork(job.data);
+    jobSuccessCounter.inc({ queue: 'video' });
+    jobLatencyHistogram.observe(Date.now() - startTime);
+    return result;
+  } catch (error) {
+    jobFailureCounter.inc({ queue: 'video', reason: error.name });
+    throw error;
+  }
+}
+```
+
+This violates the Single Responsibility Principle, creates massive boilerplate, and worst of all, it's prone to human error. If a developer forgets to add the metrics wrapper to a new queue, you have a blind spot.
+
+## The Architecture of a Zero-Config Exporter
+
+I decided to solve this at the infrastructural layer. I didn't want developers to think about metrics; I wanted the metrics to simply *exist*. 
+
+This led to the creation of `@mohamedsaba/bullmq-metrics`. 
+
+Instead of wrapping job processors, the library hooks directly into BullMQ's internal event loop. BullMQ emits events like `waiting`, `active`, `completed`, and `failed`. By listening to these events globally, we can construct a perfect, real-time picture of the queue's state without ever touching the business logic.
+
+```typescript
+import { BullMQCollector } from '@mohamedsaba/bullmq-metrics';
+import { register } from 'prom-client';
+
+// Pass your instantiated queues and workers. The library does the rest.
+const collector = new BullMQCollector({
+  queues: [videoQueue, emailQueue],
+  workers: [videoWorker, emailWorker]
+});
+```
+
+### The "Stuck Job" Problem
+
+One of the most complex architectural challenges was tracking latency accurately. It's easy to track how long a job takes *to process* (active to completed). It's much harder to track how long a job *waited* in the queue before being picked up.
+
+To solve this, the library intercepts the `active` event, looks up the job's original `timestamp` (when it was added to the queue), and calculates the difference. This metric—Wait Time—is arguably the most critical SLA metric for any queue. If processing takes 2 seconds but wait time is 4 hours, your system is failing the user.
+
+## Visualizing the Heartbeat
+
+By exporting these metrics in the standard Prometheus format, we can feed them directly into Grafana. 
+
+We established three critical alerts based on this data:
+1. **Queue Depth Spike**: Alert if `waiting` jobs > 1000 for more than 5 minutes.
+2. **Worker Starvation**: Alert if `waiting` > 0 but `active` == 0 (this would have caught our initial incident).
+3. **High Failure Rate**: Alert if `failed` rate > 5% over a 10-minute rolling window.
+
+## The Architect's Takeaway
+
+High-authority systems aren't just built to process data; they are built to be operated. 
+
+By pushing observability down into the infrastructure layer via libraries like `bullmq-metrics`, we decouple monitoring from business logic. The result is a system where metrics are guaranteed, dashboards are accurate, and developers can focus on writing code instead of writing timers.

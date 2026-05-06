@@ -1,0 +1,42 @@
+export const metadata = {
+  title: "Webhook Delivery Engine",
+  description: "A resilient, fault-tolerant webhook delivery system built with Node.js and Redis, mirroring Stripe's reliability guarantees.",
+  date: "2026-04-23",
+  tags: ["Reliability", "Architecture", "Node.js"],
+  slug: "webhook-engine",
+  category: "library",
+  npmName: "@mohamedsaba/webhook-engine",
+  githubRepo: "mohamedsaba/webhook-engine",
+  articleSlug: "webhook-delivery-engine"
+};
+
+
+# The Reliability Problem
+
+When building a webhook engine, the biggest challenge isn't sending the HTTP request—it's ensuring that the request is eventually delivered even when the recipient's server is down, without overwhelming your own infrastructure.
+
+## Architecture Highlights
+
+1. **Exponential Backoff**: We use a jittered exponential backoff strategy to prevent "thundering herd" problems.
+2. **Idempotency Keys**: Every delivery attempt is tracked with a unique ID to ensure exactly-once processing (where possible).
+3. **Dead Letter Queues**: Failed deliveries after 25 attempts are moved to a DLQ for manual inspection.
+
+## Implementation Snippet
+
+```javascript
+// Example of the delivery retry logic
+const deliveryStrategy = new ExponentialBackoff({
+  initialDelay: 1000,
+  maxDelay: 24 * 60 * 60 * 1000, // 24 hours
+  factor: 2
+});
+```
+
+## Architecture Decision Records (ADR)
+
+### ADR-001: Redis for Persistent Queuing
+We chose Redis (via BullMQ) over a traditional SQL-based queue to ensure sub-millisecond enqueue latency and atomic job state transitions.
+
+### ADR-002: Jittered Exponential Backoff
+To prevent "thundering herd" issues, we implement randomized jitter on top of exponential backoff, ensuring retries are evenly distributed.
+

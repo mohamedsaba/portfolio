@@ -1,0 +1,106 @@
+export const metadata = {
+  title: "Defending APIs: Rate Limiting with Redis Lua Scripts",
+  description: "Why standard rate limiting fails in distributed systems, and how I implemented atomic sliding windows using Redis Lua scripts.",
+  date: "2026-04-28",
+  tags: ["Redis", "Security", "Architecture", "Lua"],
+  slug: "rate-limiting-lua",
+  category: "blog",
+  library: "RateLimiterSDK"
+}
+
+# The Illusion of Rate Limiting
+
+We had a public-facing API endpoint for user authentication. To protect against brute-force attacks, we implemented a standard rate limiter middleware in our Express application: maximum 5 requests per minute per IP address.
+
+It worked perfectly in our local tests.
+
+A week later, we were hit by a coordinated brute-force attack. Looking at the logs, a single IP address had managed to hit the authentication endpoint 40 times in a single minute. 
+
+How was this possible? We had a limit of 5.
+
+## The Distributed Race Condition
+
+The problem lay in our infrastructure. We were running our Node.js application in a Kubernetes cluster with 8 replicas behind a load balancer. 
+
+Our rate limiter was using an in-memory store (like `Map` or a basic JS object). The load balancer was using round-robin routing. 
+
+When the attacker fired 40 rapid-fire requests, the load balancer distributed them across all 8 pods. Each individual pod saw about 5 requests, checked its local memory, decided the user was within the limit, and processed the login attempt. 
+
+We had created 8 independent rate limiters instead of one global one. 
+
+## Moving to Redis (And Creating a New Problem)
+
+The obvious solution was to move the state out of local memory and into a centralized Redis instance. All pods would check the same Redis key.
+
+I wrote the naive implementation:
+
+```typescript
+// NAIVE DISTRIBUTED RATE LIMITER - DO NOT USE
+async function isRateLimited(ip: string): Promise<boolean> {
+  const currentCount = await redis.get(`rate:${ip}`);
+  
+  if (currentCount && parseInt(currentCount) >= 5) {
+    return true; // Blocked
+  }
+  
+  await redis.incr(`rate:${ip}`);
+  if (!currentCount) {
+    await redis.expire(`rate:${ip}`, 60); // Expire in 60s
+  }
+  
+  return false; // Allowed
+}
+```
+
+This solved the multi-pod problem, but it introduced a classic **Time-of-Check to Time-of-Use (TOCTOU)** race condition.
+
+If two pods receive a request at the exact same millisecond, they both query `redis.get`. They both see a count of `4`. They both decide to allow the request. They both call `redis.incr`, pushing the true count to `6`. We had leaked requests.
+
+## The Power of Atomicity: Enter Lua
+
+To build a truly bulletproof rate limiter, the "check" and the "increment" operations must happen atomically. No other Redis commands can be executed between them.
+
+Redis is single-threaded. This means if we can bundle our logic into a single command, we guarantee atomicity. This is exactly what Redis Lua scripting allows us to do.
+
+I replaced the fragile TypeScript logic with a Lua script that executes entirely within the Redis engine:
+
+```lua
+-- Atomic Rate Limiter Script
+local key = KEYS[1]
+local limit = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+
+local current = redis.call("GET", key)
+
+if current and tonumber(current) >= limit then
+  return 1 -- Rate limited (True)
+end
+
+redis.call("INCR", key)
+if not current then
+  redis.call("EXPIRE", key, window)
+end
+
+return 0 -- Allowed (False)
+```
+
+In our Node.js code, we simply evaluate the script:
+
+```typescript
+const isLimited = await redis.eval(luaScript, 1, `rate:${ip}`, 5, 60);
+if (isLimited === 1) throw new TooManyRequestsException();
+```
+
+Because Redis executes the Lua script atomically, it is mathematically impossible for a race condition to occur, regardless of how many pods are hammering the database simultaneously.
+
+## Moving to Sliding Windows
+
+The fixed-window approach above has a flaw: if an attacker fires 5 requests at 0:59 and 5 requests at 1:01, they get 10 requests in a two-second window. 
+
+To solve this, I evolved the Lua script to use a **Sliding Window Log** algorithm using Redis Sorted Sets (`ZSET`). We store the timestamp of each request and calculate the limit based on the exact rolling 60-second window. Because it's all executed in Lua, it remains perfectly atomic and blisteringly fast.
+
+## The Architect's Takeaway
+
+Building security controls in distributed systems requires paranoid thinking. You must assume race conditions are the rule, not the exception.
+
+By pushing the concurrency management down into the data layer—utilizing the atomic execution guarantees of Redis Lua scripts—we eliminated a catastrophic vulnerability and built a rate limiter that could withstand a flood.
