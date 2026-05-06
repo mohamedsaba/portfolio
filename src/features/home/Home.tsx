@@ -112,12 +112,12 @@ const Home: React.FC = () => {
                   <span>Review my Stack</span>
                   <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
                 </a>
-                <a
-                  href="/contact"
+                <Link
+                  to="/contact"
                   className="w-full sm:w-auto group px-6 py-3 bg-paper-code border border-paper-border text-paper-text rounded-xl text-sm font-bold tracking-tight hover:border-paper-accent/40 transition-all duration-300 flex items-center justify-center space-x-2"
                 >
                   <span>Consulting</span>
-                </a>
+                </Link>
                 <a
                   href="/resume.docx"
                   target="_blank"
