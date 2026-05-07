@@ -25,9 +25,9 @@ const About = () => {
 
   return (
     <div className="pt-24 sm:pt-32 pb-16 sm:pb-24 px-6 max-w-6xl mx-auto">
-      <SEO 
-        title="About Me" 
-        description="Learn about Mohamed Saba's journey as a systems architect, from Helwan University to building production-grade distributed infrastructure."
+      <SEO
+        title="About Me"
+        description="Learn about Mohamed Saba — a backend engineer from Cairo building APIs, services, and open-source tools in the Node.js ecosystem."
       />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
         {/* Left Column: Abstract Identity & Stats */}
@@ -67,7 +67,7 @@ const About = () => {
             <div className="absolute top-0 right-0 p-4 opacity-10">
               <Code size={60} />
             </div>
-            <h4 className="text-paper-accent text-[10px] font-bold uppercase tracking-[0.3em] mb-8">Infrastructure Stack</h4>
+            <h4 className="text-paper-accent text-[10px] font-bold uppercase tracking-[0.3em] mb-8">Tech Stack</h4>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               {['Node.js', 'NestJS', 'Redis', 'PostgreSQL', 'Docker', 'BullMQ', 'AWS', 'Kubernetes'].map(tech => (
                 <div key={tech} className="text-paper-text/60 text-xs font-mono py-1.5 border-b border-paper-border/30 hover:text-paper-accent transition-colors">
@@ -85,22 +85,19 @@ const About = () => {
           className="lg:col-span-8"
         >
           <motion.div variants={fadeUp} custom={0.1} className="mb-20">
-            <span className="text-paper-accent text-xs font-bold uppercase tracking-[0.3em] mb-6 block">The Architect's Story</span>
+            <span className="text-paper-accent text-xs font-bold uppercase tracking-[0.3em] mb-6 block">About</span>
             <h1 className="text-5xl lg:text-8xl font-serif mb-10 text-paper-text tracking-tightest leading-[0.9]">
-              Designing for <br /> <span className="italic">Durability</span>.
+              The person behind <br /> <span className="italic">the code</span>.
             </h1>
             <div className="prose prose-lg text-paper-muted leading-relaxed space-y-8 max-w-2xl font-serif">
               <p className="text-xl">
-                I am <span className="text-paper-text font-semibold">Mohamed Saba</span>, a backend engineer focused on building high-concurrency systems where reliability isn't a feature—it's a requirement.
+                I'm <span className="text-paper-text font-semibold">Mohamed Saba</span>, a backend engineer from Cairo, Egypt. I build APIs, services, and infrastructure in the Node.js ecosystem — the kind of work that keeps products running after launch day.
               </p>
               <p>
-                My journey began at <span className="text-paper-text font-medium">Helwan University</span>, where I focused on the intersection of data structures and distributed systems. I realized early on that while elegant code is important, production-grade infrastructure is what keeps a business scaling.
+                I started at <span className="text-paper-text font-medium">Helwan University</span> studying CS, where I got obsessed with the question every backend engineer eventually faces: what happens when this thing needs to handle real traffic? That led me down the path of distributed systems, caching, idempotency, and all the patterns that separate a demo from a production system.
               </p>
               <p>
-                I specialize in solving the "edge cases" that break systems at scale: handling double-spend through idempotency, implementing jittered exponential backoffs for reliable delivery, and optimizing Redis-backed rate limiters for low-latency traffic control.
-              </p>
-              <p>
-                When I'm not shipping production code, I'm abstracting these patterns into open-source libraries. My goal is to provide engineering teams with the primitives they need to build resilient backend services without reinventing the wheel.
+                When I'm not shipping code, I'm packaging what I've learned into open-source libraries. The goal is simple: solve a problem once, solve it well, and let other engineers use it.
               </p>
             </div>
           </motion.div>

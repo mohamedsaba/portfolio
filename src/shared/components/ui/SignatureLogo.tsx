@@ -13,7 +13,7 @@ const SignatureLogo: React.FC = () => {
           Mohamed <span className="text-paper-accent italic">Saba</span>
         </div>
         <span className="text-[8px] font-mono uppercase tracking-[0.35em] text-paper-muted mt-0.5">
-          Systems Architect
+          Backend Engineer
         </span>
       </div>
     </div>

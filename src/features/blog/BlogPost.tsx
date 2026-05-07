@@ -87,7 +87,7 @@ const BlogPost = () => {
             </div>
             <div>
               <div className="text-base font-bold text-paper-text tracking-tight">Mohamed Saba</div>
-              <div className="text-[10px] text-paper-muted uppercase tracking-[0.2em] font-bold">Systems Architect</div>
+              <div className="text-[10px] text-paper-muted uppercase tracking-[0.2em] font-bold">Backend Engineer</div>
             </div>
           </div>
           

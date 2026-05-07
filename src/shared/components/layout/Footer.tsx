@@ -23,7 +23,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-sm text-paper-muted leading-relaxed max-w-xs">
-              Building resilient distributed systems and open-source infrastructure for the Node.js ecosystem.
+              Backend engineer building open-source tools for the Node.js ecosystem.
             </p>
           </div>
 

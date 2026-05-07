@@ -17,9 +17,9 @@ const SEO = ({
   ogType = 'website',
   canonical 
 }: SEOProps) => {
-  const siteTitle = 'Mohamed Saba | Systems Architect';
+  const siteTitle = 'Mohamed Saba | Backend Engineer';
   const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
-  const defaultDescription = 'Deep-documentation portfolio of Mohamed Saba, a systems architect specializing in distributed systems, idempotency, and high-reliability backend engineering.';
+  const defaultDescription = 'Portfolio of Mohamed Saba, a backend engineer specializing in Node.js, distributed systems, and open-source infrastructure.';
 
   useEffect(() => {
     // Update Title
@@ -98,7 +98,7 @@ const SEO = ({
           "@type": "Person",
           "name": "Mohamed Saba",
           "url": "https://mohamedsaba.com",
-          "jobTitle": "Systems Architect",
+          "jobTitle": "Backend Engineer",
           "sameAs": [
             "https://github.com/mohamedsaba",
             "https://linkedin.com/in/mohamedsabea"

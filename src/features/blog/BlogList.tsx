@@ -10,9 +10,9 @@ const BlogList = () => {
 
   return (
     <main className="pt-24 sm:pt-32 pb-16 sm:pb-24 px-6 max-w-3xl mx-auto">
-      <SEO 
-        title="Engineering Insights" 
-        description="Deep dives into distributed systems, backend patterns, and the architectural decisions behind my open-source projects."
+      <SEO
+        title="Articles"
+        description="Technical deep-dives into backend patterns, distributed systems, and the decisions behind my open-source projects."
       />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -20,12 +20,12 @@ const BlogList = () => {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="mb-20"
       >
-        <span className="text-paper-accent text-xs font-bold uppercase tracking-[0.3em] mb-4 block">Archive</span>
+        <span className="text-paper-accent text-xs font-bold uppercase tracking-[0.3em] mb-4 block">Writing</span>
         <h1 className="text-5xl lg:text-7xl font-serif text-paper-text tracking-tightest leading-tight mb-8">
-          Systems <span className="italic">Insights</span>.
+          Articles<span className="italic">.</span>
         </h1>
         <p className="text-xl text-paper-muted leading-relaxed font-serif max-w-2xl">
-          Deep dives into distributed systems, backend patterns, and the architectural decisions behind my open-source projects.
+          Technical deep-dives into backend patterns, distributed systems, and the decisions behind my open-source projects.
         </p>
       </motion.div>
 

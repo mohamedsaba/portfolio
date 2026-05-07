@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Database, Shield, Layers, ArrowRight, ArrowUpRight, Github, Linkedin, Mail, Terminal, Zap, Globe } from 'lucide-react';
+import { Database, Shield, ArrowRight, ArrowUpRight, Github, Linkedin, Mail, Terminal, Zap, Globe, Package, BookOpen, Code } from 'lucide-react';
 import LibraryCard from '../libraries/components/LibraryCard';
 import SEO from '../../shared/components/ui/SEO';
 import { getAllPosts } from '../../shared/utils/contentLoader';
@@ -25,35 +25,35 @@ const Home: React.FC = () => {
   const capabilities = [
     {
       icon: Terminal,
-      title: "Backend Architecture",
-      description: "Designing event-driven distributed systems that handle bursty traffic without dropping a single packet.",
+      title: "APIs & Services",
+      description: "REST APIs, microservices, event-driven systems. I build the endpoints your product talks to.",
       link: "/blog/webhook-delivery-engine"
     },
     {
       icon: Shield,
-      title: "Hardened Infrastructure",
-      description: "Implementing defense-in-depth, idempotency keys, and granular RBAC to protect critical production data.",
+      title: "Auth & Security",
+      description: "Authentication, authorization, rate limiting, input validation. Your users' data stays safe.",
       link: "/blog/idempotency-patterns"
     },
     {
       icon: Zap,
-      title: "Systems Optimization",
-      description: "Low-latency Redis caching, BullMQ tuning, and PostgreSQL index optimization for high-throughput workloads.",
+      title: "Performance",
+      description: "Caching, query optimization, background jobs. I find the bottleneck and fix it.",
       link: "/blog/rate-limiting-lua"
     },
     {
       icon: Globe,
-      title: "Tooling & DX",
-      description: "Building production-grade libraries and internal tooling to solve recurring engineering bottlenecks.",
+      title: "Open-Source Tooling",
+      description: "I turn recurring problems into published libraries. Your team gets battle-tested primitives, not reinvented wheels.",
       link: "/blog/bullmq-observability"
     },
   ];
 
   return (
     <div className="">
-      <SEO 
-        title="Systems Architect" 
-        description="I architect the backend that lets your product scale without breaking. Specializing in NestJS, distributed systems, and open-source infrastructure."
+      <SEO
+        title="Backend Engineer"
+        description="I build APIs, services, and backend infrastructure in Node.js. Clean code, solid architecture, no surprises in production."
       />
       {/* ─── Hero Section ─── */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
@@ -78,7 +78,7 @@ const Home: React.FC = () => {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-paper-accent/60"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-paper-accent"></span>
                   </span>
-                  <span>Available for Architecture Consulting</span>
+                  <span>Available for Projects</span>
                 </div>
               </motion.div>
 
@@ -89,8 +89,8 @@ const Home: React.FC = () => {
                 className="mb-8 text-paper-text"
                 style={{ lineHeight: '0.9' }}
               >
-                I architect systems <br className="hidden sm:block" />
-                that <span className="text-paper-accent italic">Scale</span> with <span className="text-paper-accent">Authority</span>
+                I build backends <br className="hidden sm:block" />
+                that <span className="text-paper-accent italic">just</span> <span className="text-paper-accent">work</span>
                 <span className="text-paper-warm">.</span>
               </motion.h1>
 
@@ -100,7 +100,7 @@ const Home: React.FC = () => {
                 custom={0.2}
                 className="text-base sm:text-lg md:text-xl text-paper-muted font-serif leading-relaxed mb-12 max-w-xl"
               >
-                I am <span className="text-paper-text font-semibold">Mohamed Saba</span>, a backend architect specializing in the invisible infrastructure that makes modern engineering possible. Reliability isn't a feature—it's my baseline.
+                I am <span className="text-paper-text font-semibold">Mohamed Saba</span>, a backend engineer who builds APIs, services, and infrastructure in Node.js. Clean code, solid architecture, no surprises in production.
               </motion.p>
 
               {/* Actions */}
@@ -109,14 +109,14 @@ const Home: React.FC = () => {
                   href="#projects"
                   className="w-full sm:w-auto group px-6 py-3 bg-paper-accent text-paper-bg rounded-xl text-sm font-bold tracking-tight hover:shadow-xl hover:shadow-paper-accent/20 transition-all duration-300 flex items-center justify-center space-x-2"
                 >
-                  <span>Review my Stack</span>
+                  <span>See What I've Built</span>
                   <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
                 </a>
                 <Link
                   to="/contact"
                   className="w-full sm:w-auto group px-6 py-3 bg-paper-code border border-paper-border text-paper-text rounded-xl text-sm font-bold tracking-tight hover:border-paper-accent/40 transition-all duration-300 flex items-center justify-center space-x-2"
                 >
-                  <span>Consulting</span>
+                  <span>Work with Me</span>
                 </Link>
                 <a
                   href="/resume.docx"
@@ -304,7 +304,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* ─── Philosophy Section ─── */}
+      {/* ─── How I Work Section ─── */}
       <section className="relative overflow-hidden bg-[#0C0F05]">
         <div className="py-32 px-6">
           {/* Subtle gradient accents */}
@@ -313,7 +313,7 @@ const Home: React.FC = () => {
 
           <div className="max-w-6xl mx-auto relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-              {/* Left — Philosophy Content */}
+              {/* Left — How I Work Content */}
               <motion.div
                 initial="hidden"
                 whileInView="visible"
@@ -325,7 +325,7 @@ const Home: React.FC = () => {
                   custom={0}
                   className="text-xs font-bold uppercase tracking-[0.3em] text-paper-accent mb-6 block"
                 >
-                  Engineering Philosophy
+                  How I Work
                 </motion.span>
                 <motion.h2
                   variants={fadeUp}
@@ -333,25 +333,25 @@ const Home: React.FC = () => {
                   className="text-5xl lg:text-6xl font-serif mb-12 text-paper-text"
                   style={{ letterSpacing: '-0.05em', lineHeight: '1.1' }}
                 >
-                  The <span className="italic text-paper-accent">Invisible</span> Excellence.
+                  Built to <span className="italic text-paper-accent">last</span>.
                 </motion.h2>
 
                 <div className="space-y-10">
                   {[
                     {
-                      icon: Database,
-                      title: "Systems that Think",
-                      desc: "I design architectures that don't just process data — they anticipate failure, handle concurrency, and self-heal."
+                      icon: Code,
+                      title: "Code for the long run",
+                      desc: "I write for the engineer who maintains it next year, not just the sprint that ships this week."
                     },
                     {
-                      icon: Shield,
-                      title: "Security as a Baseline",
-                      desc: "Security isn't a layer added at the end. It's woven into every line of code I write."
+                      icon: BookOpen,
+                      title: "No black boxes",
+                      desc: "Clear APIs, documented decisions, plain-language communication. You'll always know what your system does."
                     },
                     {
-                      icon: Layers,
-                      title: "Composable Abstractions",
-                      desc: "Every library I publish is built to compose cleanly with the tools your team already uses."
+                      icon: Package,
+                      title: "Open source first",
+                      desc: "When I solve a problem well, I publish it. 7 libraries and counting."
                     },
                   ].map((item, i) => (
                     <motion.div key={item.title} variants={fadeUp} custom={0.2 + i * 0.1} className="flex space-x-6">
@@ -367,7 +367,7 @@ const Home: React.FC = () => {
                 </div>
               </motion.div>
 
-              {/* Right — Quote Card */}
+              {/* Right — Proof Card */}
               <motion.div
                 initial={{ opacity: 0, y: 30, scale: 0.98 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -375,18 +375,20 @@ const Home: React.FC = () => {
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
                 className="bg-paper-code border border-paper-border p-12 lg:p-16 rounded-[3rem] relative shadow-2xl"
               >
-                <div className="text-6xl font-serif text-paper-accent/30 mb-6 leading-none">"</div>
-                <p className="text-2xl lg:text-3xl font-serif italic leading-relaxed text-paper-text/90">
-                  Engineering isn't about building what's possible; it's about ensuring what's built remains inevitable.
-                </p>
-                <div className="mt-12 pt-10 border-t border-paper-border flex items-center space-x-5">
-                  <div className="h-14 w-14 rounded-2xl bg-paper-accent flex items-center justify-center font-serif text-paper-bg text-2xl italic">
-                    S
-                  </div>
-                  <div>
-                    <div className="font-semibold text-paper-text text-base">Mohamed Saba</div>
-                    <div className="text-[10px] text-paper-muted uppercase tracking-[0.2em] mt-1 font-bold">Architect's Creed</div>
-                  </div>
+                <div className="space-y-12">
+                  {[
+                    { number: "7", label: "Open-source libraries", sublabel: "Published on npm" },
+                    { number: "8", label: "Technical deep-dives", sublabel: "Architecture & patterns" },
+                    { number: "∞", label: "Lines of code", sublabel: "That don't break in production" },
+                  ].map((stat, i) => (
+                    <div key={stat.label} className={`${i > 0 ? 'pt-10 border-t border-paper-border' : ''}`}>
+                      <div className="text-5xl lg:text-6xl font-serif text-paper-accent mb-3" style={{ letterSpacing: '-0.04em' }}>
+                        {stat.number}
+                      </div>
+                      <div className="font-semibold text-paper-text text-base">{stat.label}</div>
+                      <div className="text-[11px] text-paper-muted uppercase tracking-[0.15em] mt-1 font-bold">{stat.sublabel}</div>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             </div>
@@ -406,7 +408,7 @@ const Home: React.FC = () => {
               className="max-w-xl"
             >
               <motion.span variants={fadeUp} custom={0} className="text-xs font-bold uppercase tracking-[0.3em] text-paper-accent mb-4 block">
-                Open Source
+                What I've Built
               </motion.span>
               <motion.h2
                 variants={fadeUp}
@@ -414,10 +416,10 @@ const Home: React.FC = () => {
                 className="text-5xl lg:text-7xl font-serif mb-6 text-paper-text"
                 style={{ letterSpacing: '-0.05em' }}
               >
-                The Projects
+                Projects
               </motion.h2>
               <motion.p variants={fadeUp} custom={0.2} className="text-xl text-paper-muted leading-relaxed">
-                A collection of specialized libraries designed to solve high-concurrency challenges in production environments.
+                Tools I've built and published. Each one solves a specific backend problem and is ready for your stack.
               </motion.p>
             </motion.div>
             <motion.a
@@ -461,14 +463,14 @@ const Home: React.FC = () => {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <span className="text-xs font-bold uppercase tracking-[0.3em] text-paper-warm mb-8 block">
-              Let's Build Together
+              Ready to start?
             </span>
             <h2 className="text-5xl lg:text-6xl font-serif mb-8 text-paper-text" style={{ letterSpacing: '-0.05em' }}>
-              Have a system that needs <br />
-              <span className="text-paper-accent italic">architectural clarity</span>?
+              Need a <br />
+              <span className="text-paper-accent italic">backend engineer</span>?
             </h2>
             <p className="text-xl text-paper-muted leading-relaxed mb-12 max-w-lg mx-auto">
-              I help teams ship resilient distributed systems, optimize API throughput, and harden backend infrastructure. Let's build something that handles the load.
+              Whether you're hiring for a team or kickstarting a project — I'm here to build something solid.
             </p>
             <div className="flex flex-wrap gap-5 justify-center">
               <a

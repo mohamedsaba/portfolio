@@ -7,7 +7,7 @@ import SEO from '../shared/components/ui/SEO';
 const NotFound: React.FC = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
-      <SEO title="404 - System Error" description="The requested architectural resource could not be located." />
+      <SEO title="404 - Page Not Found" description="The page you're looking for doesn't exist or has been moved." />
       
       <div className="max-w-md w-full text-center">
         <motion.div
@@ -36,7 +36,7 @@ const NotFound: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-paper-muted mb-10 leading-relaxed"
         >
-          The requested system component could not be resolved. It might have been refactored or decommissioned.
+          The page you're looking for doesn't exist or has been moved.
         </motion.p>
 
         <motion.div
@@ -49,7 +49,7 @@ const NotFound: React.FC = () => {
             className="inline-flex items-center space-x-2 px-6 py-3 bg-paper-accent text-paper-bg rounded-xl text-sm font-bold tracking-tight hover:shadow-xl hover:shadow-paper-accent/20 transition-all duration-300"
           >
             <Home size={16} />
-            <span>Return to Cluster Root</span>
+            <span>Back to Home</span>
           </Link>
         </motion.div>
       </div>
