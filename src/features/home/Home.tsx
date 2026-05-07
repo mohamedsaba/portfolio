@@ -5,6 +5,7 @@ import { Database, Shield, ArrowRight, ArrowUpRight, Github, Linkedin, Mail, Ter
 import LibraryCard from '../libraries/components/LibraryCard';
 import SEO from '../../shared/components/ui/SEO';
 import { getAllPosts } from '../../shared/utils/contentLoader';
+import { usePortfolioStats } from '../../shared/hooks/useNpmDownloads';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -21,6 +22,7 @@ const stagger = {
 
 const Home: React.FC = () => {
   const libraries = getAllPosts().filter((post: any) => post.category === 'library');
+  const { projectCount, articleCount, npmPackageCount, totalDownloads } = usePortfolioStats();
 
   const capabilities = [
     {
@@ -377,9 +379,9 @@ const Home: React.FC = () => {
               >
                 <div className="space-y-12">
                   {[
-                    { number: "7", label: "Open-source libraries", sublabel: "Published on npm" },
-                    { number: "8", label: "Technical deep-dives", sublabel: "Architecture & patterns" },
-                    { number: "∞", label: "Lines of code", sublabel: "That don't break in production" },
+                    { number: String(projectCount), label: "Open-source projects", sublabel: `${npmPackageCount} published on npm` },
+                    { number: totalDownloads !== null ? totalDownloads.toLocaleString() : "—", label: "npm downloads", sublabel: "Last 30 days" },
+                    { number: String(articleCount), label: "Technical articles", sublabel: "Architecture & patterns" },
                   ].map((stat, i) => (
                     <div key={stat.label} className={`${i > 0 ? 'pt-10 border-t border-paper-border' : ''}`}>
                       <div className="text-5xl lg:text-6xl font-serif text-paper-accent mb-3" style={{ letterSpacing: '-0.04em' }}>
