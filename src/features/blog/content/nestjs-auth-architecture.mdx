@@ -10,9 +10,9 @@ export const metadata = {
 
 # The Fragmentation of Security
 
-In many NestJS codebases, authentication and authorization are often implemented as an ad-hoc collection of guards and decorators scattered across the application. This fragmentation leads to security vulnerabilities, inconsistent policy enforcement, and a nightmare for auditing.
+In many NestJS codebases, authentication and authorization are implemented as an ad-hoc collection of guards and decorators scattered across the application. This fragmentation leads to security vulnerabilities, inconsistent policy enforcement, and a nightmare for auditing.
 
-With `@mohamedsaba/Nestjs-AuthKit`, I set out to build a unified framework that standardizes these patterns into a single, highly composable engine.
+After running into this exact problem in every NestJS project I built, I decided to solve it once and for all. With `@mohamedsaba/Nestjs-AuthKit`, I set out to build a unified framework that standardizes these patterns into a single, highly composable engine.
 
 ## The Identity Engine
 
@@ -20,7 +20,7 @@ The core of the system is the **Identity Provider**, which decouples the authent
 
 ### Multi-Strategy Convergence
 
-We support multiple strategies running in parallel, which is critical for systems that handle both public API consumers (via API Keys) and internal dashboards (via OIDC/JWT).
+The library supports multiple strategies running in parallel, which is critical for systems that handle both public API consumers (via API Keys) and internal dashboards (via OIDC/JWT).
 
 ```typescript
 @UseGuards(AuthGuard(['jwt', 'api-key']))
@@ -34,7 +34,7 @@ export class OrdersController {
 
 Simple Role-Based Access Control (RBAC) often breaks down in complex domains. If a "Manager" can edit a "Project," but only if they are the designated "Project Lead," raw roles aren't enough.
 
-We implemented a **Policy-Based Authorization** system inspired by AWS IAM and XACML. Policies are evaluation units that combine roles, permissions, and runtime attributes (ABAC).
+I implemented a **Policy-Based Authorization** system inspired by AWS IAM and XACML. Policies are evaluation units that combine roles, permissions, and runtime attributes (ABAC).
 
 ### The Evaluation Logic
 
@@ -51,10 +51,10 @@ async updateProject(id: string) {
 
 ## Developer Ergonomics: The Decorator Pattern
 
-A major goal was to reduce the "Security Tax"—the amount of boilerplate developers must write to keep a feature secure. By utilizing custom metadata and reflection, we reduced auth-related code in controllers by nearly 60%.
+A major goal was to reduce the "Security Tax"—the amount of boilerplate developers must write to keep a feature secure. By utilizing custom metadata and reflection, the library reduces auth-related code in controllers by nearly 60%.
 
 The library provides a declarative API that makes security intent clear at a glance, acting as its own documentation.
 
 ## Conclusion: Security as a First-Class Citizen
 
-Auth shouldn't be a middleware you "attach" to your app; it should be the foundation your app is built upon. By standardizing these patterns, we move from "hope-based security" to "architecture-based security."
+Auth shouldn't be a middleware you "attach" to your app; it should be the foundation your app is built upon. By standardizing these patterns into a reusable library, the shift is from "hope-based security" to "architecture-based security."

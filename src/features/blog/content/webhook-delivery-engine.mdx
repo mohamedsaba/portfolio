@@ -11,31 +11,29 @@ export const metadata = {
 
 If you've ever integrated with Stripe, you know the gold standard of webhooks. They are fast, they are reliable, and if your server is down, they politely retry with an exponential backoff until you recover. 
 
-I was tasked with building a webhook delivery system for our internal B2B platform. Our clients needed to be notified when specific asynchronous background tasks completed. 
+While studying Stripe's architecture and building my own event-driven systems, I realized that webhook delivery is one of those problems that *looks* trivially simple. "Just make an HTTP POST request when the job finishes." 
 
-"Just make an HTTP POST request when the job finishes," the product manager said. 
-
-I smiled. If only it were that simple.
+I decided to build one from scratch to understand why it's actually hard.
 
 ## The Naive Approach and Its Catastrophic Failure
 
-My initial proof-of-concept was exactly what was requested. When a job finished, I used `axios` to POST the payload to the client's registered URL.
+My initial proof-of-concept was exactly what most tutorials suggest. When a job finished, I used `axios` to POST the payload to a registered URL.
 
-It took less than a week for the system to collapse under its own weight.
+It took less than a week of stress testing for the system to collapse under its own weight.
 
-One of our clients had a misconfigured server that was "tarpitting" us—accepting the connection but never responding, keeping the HTTP socket open indefinitely. Because I hadn't enforced strict timeouts, our Node.js event loop quickly became choked with hundreds of hanging requests. Memory spiked, connections maxed out, and our entire background processing pipeline ground to a halt.
+I set up a test endpoint that intentionally "tarpitted" requests—accepting the connection but never responding, keeping the HTTP socket open indefinitely. Because I hadn't enforced strict timeouts, the Node.js event loop quickly became choked with hundreds of hanging requests. Memory spiked, connections maxed out, and the entire background processing pipeline ground to a halt.
 
-I had built a system that allowed our clients' bad infrastructure to take down our good infrastructure.
+I had built a system where a single misbehaving downstream endpoint could take down the entire delivery infrastructure.
 
 ## Architecting for Hostile Environments
 
-I went back to the drawing board to build `@mohamedsaba/webhook-engine`. I needed an architecture based on defensive engineering. The core philosophy was simple: assume every client URL is actively trying to destroy your server.
+I went back to the drawing board to build `@mohamedsaba/webhook-engine`. The core philosophy was defensive engineering: assume every target URL is actively trying to destroy your server.
 
 ### 1. The Asynchronous Queue
 
 The first architectural change was decoupling the webhook delivery from the business logic. 
 
-Instead of making the HTTP request directly, the core application simply pushes a JSON payload to a Redis-backed queue (using BullMQ). This ensures that if a client endpoint is slow or offline, it has zero impact on our internal application performance. The application pushes the event to Redis in 2 milliseconds and moves on.
+Instead of making the HTTP request directly, the application simply pushes a JSON payload to a Redis-backed queue (using BullMQ). This ensures that if a downstream endpoint is slow or offline, it has zero impact on the application's performance. The app pushes the event to Redis in 2 milliseconds and moves on.
 
 ### 2. Strict Execution Boundaries
 
@@ -59,19 +57,19 @@ try {
 }
 ```
 
-If a client doesn't acknowledge the payload within exactly 5000 milliseconds, the connection is severed. We mark it as a failure.
+If a downstream endpoint doesn't acknowledge the payload within exactly 5000 milliseconds, the connection is severed. Marked as a failure.
 
 ### 3. Exponential Backoff and Jitter
 
-When a webhook fails (due to a 5xx error or a timeout), we cannot simply abandon the payload, nor can we hammer the client's struggling server every second.
+When a webhook fails (due to a 5xx error or a timeout), you cannot simply abandon the payload, nor can you hammer the struggling endpoint every second.
 
 I implemented an exponential backoff strategy: retry after 1 minute, then 5 minutes, then 30 minutes, up to a maximum of 3 days. 
 
-Crucially, I added **Jitter** to the retry calculation. If a client's server comes back online after an outage, we don't want all 10,000 queued webhooks to hit them at exactly the same millisecond. Adding a randomized jitter (e.g., +/- 15%) smooths out the retry spike, protecting the client from a thundering herd.
+Crucially, I added **Jitter** to the retry calculation. If a downstream server comes back online after an outage, you don't want all 10,000 queued webhooks to hit it at exactly the same millisecond. Adding a randomized jitter (e.g., +/- 15%) smooths out the retry spike, protecting the endpoint from a thundering herd.
 
 ### 4. Cryptographic Signatures
 
-Security is paramount. A client needs to know that the webhook actually came from us and wasn't forged by a malicious third party. 
+Security is paramount. The receiver needs to verify that the webhook actually came from a trusted source and wasn't forged by a malicious third party. 
 
 The engine generates an HMAC SHA-256 signature using a shared secret and attaches it to the `Webhook-Signature` header. The payload is signed *after* serialization to prevent any JSON parsing discrepancies from invalidating the hash.
 
@@ -79,4 +77,4 @@ The engine generates an HMAC SHA-256 signature using a shared secret and attache
 
 A production webhook engine isn't an HTTP client; it's a defensive fortress. 
 
-By utilizing queues for isolation, strict timeouts for self-preservation, and jittered exponential backoffs for empathy toward downstream servers, we transformed a fragile `axios.post` into an enterprise-grade delivery mechanism. We didn't just build a feature; we engineered reliability.
+By utilizing queues for isolation, strict timeouts for self-preservation, and jittered exponential backoffs for empathy toward downstream servers, I transformed a fragile `axios.post` into an enterprise-grade delivery mechanism. I didn't just build a feature; I engineered reliability.

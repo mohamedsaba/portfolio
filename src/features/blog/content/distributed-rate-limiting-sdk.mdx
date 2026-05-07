@@ -18,7 +18,7 @@ When building APIs that serve thousands of concurrent users, raw performance is 
 
 Local rate limiting is easy but insufficient for distributed systems. If you have 10 instances of your API, each instance has its own local memory. A client could potentially hit your system 10x more than their limit by rotating between instances.
 
-We solved this by utilizing **Redis as a centralized state store**. To ensure high performance, we use atomic Lua scripts. This allows us to perform the "check-and-increment" logic in a single round-trip to Redis, eliminating race conditions without the overhead of complex locks.
+I solved this by utilizing **Redis as a centralized state store**. To ensure high performance, the SDK uses atomic Lua scripts. This allows the "check-and-increment" logic to execute in a single round-trip to Redis, eliminating race conditions without the overhead of complex locks.
 
 ### The Token Bucket Pattern
 
@@ -43,8 +43,8 @@ if (await limiter.consume(clientId)) {
 
 In a multi-tenant SaaS environment, tenant isolation is critical. You cannot allow one client's high traffic to "starve" another client's available capacity.
 
-The SDK treats the `clientId` (or tenant ID) as the primary isolation axis. Every tenant effectively gets their own isolated token bucket in Redis, ensuring that performance is consistent across your entire user base.
+The SDK treats the `clientId` (or tenant ID) as the primary isolation axis. Every tenant effectively gets their own isolated token bucket in Redis, ensuring that performance is consistent across the entire user base.
 
 ## Conclusion
 
-A rate limiter is the "front line" of your infrastructure's defense. By combining the atomicity of Redis Lua scripts with the developer ergonomics of TypeScript, we've built a tool that is both incredibly fast and effortless to integrate.
+A rate limiter is the "front line" of your infrastructure's defense. By combining the atomicity of Redis Lua scripts with the developer ergonomics of TypeScript, I built a tool that is both incredibly fast and effortless to integrate.
